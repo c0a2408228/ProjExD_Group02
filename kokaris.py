@@ -82,7 +82,11 @@ class Block:
                                  Rect(BOARD_OFFSET_X + 2 + BLOCK_SIZE * col,
                                       BOARD_OFFSET_Y + 2 + BLOCK_SIZE * (row - 2),
                                       BLOCK_SIZE - 4, BLOCK_SIZE - 4))
-
+class Voice:
+    def __init__(voice):
+        voice.tetorisu= 0
+        voice.kesu = 0
+        
 class Record:
     def __init__(self):
         self.cleared_row = 0
@@ -100,7 +104,25 @@ class Record:
         
         if self.level < 40 and self.level_up[self.level] <= self.cleared_row: # level 40 is max
             self.level += 1
-            
+    
+    def show(self, screen):
+        font = pygame.font.Font(None, 50)
+        text1 = font.render("LEVEL:", True, (255, 255, 255))
+        level = font.render("{}".format(self.level), True, (255, 255, 255))
+        screen.blit(text1, [500, 300])
+        screen.blit(level, [700, 300])
+        
+        text2 = font.render("CLEARED ROW:", True, (255, 255, 255))
+        cleared_row = font.render("{}".format(self.cleared_row), True, (255, 255, 255))
+        screen.blit(text2, [500, 360])
+        screen.blit(cleared_row, [900, 360])
+        
+        text3 = font.render("SCORE", True, (255, 255, 255))
+        score = font.render("{0:012d}".format(self.score), True, (255, 255, 255))
+        screen.blit(text3, [500, 420])
+        screen.blit(score, [600, 480])
+    
+
 def initialize_game():
     board = [[0 for _ in range(MAX_COL + 2)] for _ in range(MAX_ROW + 3)]
     for col in range(MAX_COL + 2):
@@ -127,22 +149,28 @@ def draw_board(screen, board, block_color):
                                       BOARD_OFFSET_Y + 2 + BLOCK_SIZE * (row - 2),
                                       BLOCK_SIZE - 4, BLOCK_SIZE - 4))
 
+def voice():
+    sound = pygame.mixer.Sound("clear.wav")
+    sound.play()
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((500, 750))
+    screen = pygame.display.set_mode((1000, 750))
     pygame.display.set_caption("Simple Tetris")
-
+    pygame.init()
+    pygame.mixer.init()
     block_color = [(50, 50, 50), (150, 150, 150), (255, 0, 0), (0, 0, 255), (255, 165, 0),
                    (255, 0, 255), (0, 255, 0), (0, 255, 255), (255, 255, 0)]
 
     board, block = initialize_game()
     game_over = False
+    
+    
 
     while not game_over:
         pygame.time.wait(10)
         screen.fill((0, 0, 0))
         draw_board(screen, board, block_color)
-
+        record = Record()
         if block:
             pressed_key = pygame.key.get_pressed()
             if pressed_key[K_DOWN]:
@@ -159,7 +187,8 @@ def main():
                     block_type = random.randint(2, 8)
                     block = Block(block_type)
             block.draw(screen, block_color)
-
+        record.show(screen)
+        
         pygame.display.update()
 
         for event in pygame.event.get():
